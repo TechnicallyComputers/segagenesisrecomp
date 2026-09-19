@@ -11,7 +11,7 @@ Engine and consumer branch: `experiment/sonic2-local-4p` in separate worktrees.
 - [x] Import and round-trip Ghidra projects without committing databases or ROMs.
 - [x] Build all five native targets; 12 framework tests and five 3,600-frame smoke runs pass.
 - [x] Commit primary engine master: `7a927e4`, `24a44ff`.
-- [ ] Update consumer engine pins at integration (experimental code stays on its branch).
+- [x] Publish shared dependencies and pin the tested engine/UI revisions in the consumer.
 
 ## M1 — roster and native Options route
 
