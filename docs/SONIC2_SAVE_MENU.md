@@ -158,6 +158,25 @@ in `donor-reference-01`, privately and serially. Owner saves/settings were
 preserved and the campaign file still validates. Updated visual approval and
 dependency-first integration remain.
 
+### Independent check of the striped shadows
+
+After the owner questioned the shadows again, verified the unmodified combined
+ROM in **Genesis Plus GX v1.7.4 f687c49**, independent of this project's
+recompiler and renderer. The private capture is
+`build/save-menu/genesis-plus-gx-reference-01/original-menu-2x.png`; its metadata
+records the core identity and options. A two-frame Start press at frame 600
+opens Data Select, captured at frame 781 without ROM or RAM patches.
+
+The striped right/bottom shadows are present there too. Eleven nonempty sampled
+regions (1,849 dark pixels) have identical border/shadow placement, recorded in
+`build/save-menu/independent-shadow-comparison.json`. This comparison maps the
+dark donor ink between the emulator's RGB (32,32,32) and this renderer's
+(49,49,49), with nonzero shadow pixels required in every counted region. The
+twelfth earlier sample contains no dark pixels and is excluded. This does not
+claim whole-image RGB equality across different palette conversion models.
+The earlier recompiler-to-recompiler capture alone was insufficient as an
+independent authenticity check. No shadow artwork or game behavior was changed.
+
 ## Evidence so far
 
 `ctest --test-dir build/save-menu/tests -C Release --output-on-failure`
