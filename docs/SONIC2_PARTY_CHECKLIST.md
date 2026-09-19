@@ -23,10 +23,10 @@ Engine and consumer branch: `experiment/sonic2-local-4p` in separate worktrees.
 - [x] Automated model tests and real navigation screenshots.
 
 The roster creates the selected native/imported gameplay actors. Eighteen
-ROM-independent CTests and 19 serial live cases pass; every live case has
+ROM-independent CTests and 21 serial live cases pass; every live case has
 strict native-stack checks and zero dispatch misses. Four-player runs advance
 251 world ticks over 251 output frames (including widescreen). Evidence is in
-ignored `build/party-acceptance-02/`. Human visual/audio/controller acceptance
+ignored `build/party-spawnfix-acceptance/`. Human visual/audio/controller acceptance
 remains required; tests do not certify full-campaign parity.
 
 Final stock regression: 3,600 frames, zero dispatch misses; all three PNGs and
@@ -65,6 +65,12 @@ same 67 pre-existing comment/compatibility matches as primary master.
 - [x] Native special stages use selected P1/P2 and restore companions on return.
 - [x] Existing netplay guard rejects experimental rosters; no netplay expansion.
 - [x] Companion death/catchup, act reload and unavailable-donor roster repair.
+- [x] Owner-reported floating companions after checkpoint special-stage return:
+  native character init now inherits P1's collision plane and priority before
+  movement. Real starpost/SS-return fixtures cover both roster arrangements,
+  the reported ghost-floor location, and primary/secondary-plane recovery.
+- [x] Ordinary spawn/SS-return no longer starts hurt blinking; protected recovery
+  and actual hurt reuse the native sprite-submission decision and blink cadence.
 - [x] Reject machine quickstates that cannot serialize experimental host state.
 - [ ] Whole-campaign devices/power-up visuals/water palettes and exhaustive donor parity.
 
