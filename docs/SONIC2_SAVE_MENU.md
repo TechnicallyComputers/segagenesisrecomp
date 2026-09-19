@@ -242,10 +242,50 @@ Act 1. Select Delete, choose a file, then use the sign's Left=Yes or Right=No;
 A/C/Start also confirms and B cancels. Options retains
 the actual party. Audio currently uses native Sonic 2 Options music.
 
-`sonic2-campaign.sav` is beside runtime settings; `.sav.bak` is the previous
-valid revision. Neither contains ROM/art bytes. Invalid/foreign/future files
+The optional **Campaign SRAM** picker is under this mod alongside the donor
+picker, not on stock Sonic 2's main screen. A fresh install has no selected
+path and creates no save until a campaign write occurs. That first write
+creates `sonic2-campaign.srm` beside the executable and records `campaign_path`
+in `sonic2-party.ini`. This follows native S3&K's executable-adjacent `.srm`
+placement (`runner/main.c`, `runner_sram_init_and_load`), while keeping a
+distinct filename for this mod's campaign format. It is not raw S3&K SRAM.
+
+Choosing a file loads and updates that exact file in place; it is not copied
+into a default location. Local selections are stored relative to the executable
+directory supplied by the settings hook, independent of process working
+directory. External selections remain absolute. Relative configured paths
+(including `../`) also resolve from that directory. An explicit missing path
+is recreated there on the next save; a failed write never falls back elsewhere.
+Clear selection returns to the default destination without deleting files.
+The first release's `sonic2-campaign.sav`, including protected files/backups,
+is detected before the new default and continues in place without conversion.
+
+`<selected-path>.bak` is the previous valid revision. Neither file contains
+ROM/art bytes. Invalid/foreign/future files
 are preserved. A valid backup can be played read-only if primary data is lost
 or damaged; automatic recovery never overwrites original files. Keep both
 files when recovering. Failed writes retain progress in memory for the next
 event/menu retry and show a notice; quitting before a successful retry loses
 that uncommitted progress.
+
+### Selectable-path follow-up (beads-5dyp.4)
+
+Implemented in the existing phase-2 worktrees after the initial menu was
+accepted and published. Shared UI companion `beads-0fu.6` gives optional mod
+resources a neutral unselected status and Clear selection through the existing
+provider API; required donor pickers keep their behavior. No main-screen SRAM
+or shared cartridge persistence logic changes. New `sonic2_campaign_file`
+coordinates the store, selection and settings; menu save/delete paths both
+use it. Rejected selections preserve the current file and selection. If data
+is saved but recording its path fails, retry keeps the same destination and
+does not increment the data revision again.
+
+Release build and 20 CTests pass, including file selection, lazy creation,
+backup writes, legacy preservation, invalid selections, missing destinations
+and settings-write failure/retry. `campaign-picker-01` passes 28 runtime cases,
+including relative/external destinations, no fallback on write failure and
+moving the executable folder. All native dispatch-miss lists are empty.
+These are automated checks; owner validation of the new picker is pending.
+The actual native file dialog was exercised against an external fixture;
+`picker-ui-01/selected-picker.png` shows the validated selection under the mod.
+`boot-picker-01` matches the existing frame-60 reference with no dispatch misses.
