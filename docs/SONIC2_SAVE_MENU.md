@@ -119,10 +119,44 @@ host-owned buffers. Private ROM/art bytes never enter commits or packages.
    completed-file zone selection, continued Emerald persistence, No Save,
    Delete confirmation/cancel, write-failure notice/retry. Machine states and
    netplay reject the enabled campaign feature.
-5. **S4 automated checks passed:** 19 CTests, 22 campaign fixtures, 23 prior
+5. **S4 automated checks passed:** 19 CTests, 24 campaign fixtures, 23 prior
    party cases, boot reference and mod-off screenshot/RAM parity. Remaining:
-   owner runtime/controller/audio playtest, corrections and dependency-first
-   integration. Layout approval does not certify runtime QA.
+  owner runtime/controller/audio playtest, corrections and dependency-first
+  integration. Layout approval does not certify runtime QA.
+
+### Owner playtest corrections (2026-09-19)
+
+Owner confirmed that finishing Act 1 saves the Act 2 destination. The reported
+File 1/2/3 problem was clarified as caption alignment only, not a load failure.
+Removed the extra eight-pixel caption offset (including CLEAR) and the normal
+bottom instruction/stage-name footer. Actual storage failure notices remain.
+
+The native S3&K capture confirms the black striped borders are intentional
+donor shadows. Twelve sampled border/shadow regions match the native capture
+pixel for pixel (`build/save-menu/border-comparison.json`); the original
+character-selection arrow is excluded because character selection is fixed here.
+No shadow art was replaced. The selector now moves in native eight-pixel steps,
+with the camera following its position, rather than jumping to the destination
+and waiting for scrolling to catch up.
+
+Delete now renders both native parts: body frames 13/14 using `byte_D93A` at
+six-frame intervals, and sign frames 8..11 using `sub_D94A` at four-frame
+intervals. Robotnik follows the selector above the selected card and returns
+to Delete after leaving erase mode. The donor confirmation sign is frame 12:
+Left confirms YES, Right cancels NO. Existing A/C/Start and B aliases remain.
+`loc_D83C`, `loc_D854`/`loc_D884`, `sub_D912` and `sub_D94A` provide the movement
+and animation references; the existing verified asset bank already held these
+frames. No new donor content or execution was introduced.
+
+Updated Release and trace builds pass 19 CTests, all 24 campaign fixtures
+(`campaign-polish-01`, including Left/Right confirmation and preservation on
+cancel), and the frame-60 comparison (`boot-polish-01`). All native runs have
+empty dispatch-miss lists. Actual updated menu captures are in
+`campaign-polish-01/delete-directions`; `robotnik-delete-preview.gif` shows the
+sign/body cycle. The original donor comparison used the existing S3&K runner
+in `donor-reference-01`, privately and serially. Owner saves/settings were
+preserved and the campaign file still validates. Updated visual approval and
+dependency-first integration remain.
 
 ## Evidence so far
 
@@ -179,7 +213,8 @@ OFF. No prior settings or saves are replaced.
 Launcher Mods -> S3&K -> Sonic 3-style Save Menu. Reuse the existing combined
 donor; Knuckles is independent. Title 1 PLAYER opens Data Select. Left/right
 selects, A/C/Start loads, B returns. Completed cards use up/down for zones at
-Act 1. Select Delete, choose a file, confirm again; B cancels. Options retains
+Act 1. Select Delete, choose a file, then use the sign's Left=Yes or Right=No;
+A/C/Start also confirms and B cancels. Options retains
 the actual party. Audio currently uses native Sonic 2 Options music.
 
 `sonic2-campaign.sav` is beside runtime settings; `.sav.bak` is the previous
