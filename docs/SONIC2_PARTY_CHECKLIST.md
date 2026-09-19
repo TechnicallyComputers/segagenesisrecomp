@@ -54,6 +54,8 @@ same 67 pre-existing comment/compatibility matches as primary master.
   - [x] Virtual SDL P3/P4 button isolation and disconnect tests; shared launcher
     bindings round-trip through the engine's actual settings.ini parser.
 - [x] Native Genesis physical ports remain two; no netplay expansion.
+- [x] Other games retain two opened controllers by default; four-device discovery
+  requires the game's explicit capability. Default/zero/four-device tests pass.
 - [x] Independent P3/P4 actor state; tick the world only once.
 - [x] Companion CPU fallback when local controller unavailable (basic follow/jump).
 - [x] P1 owns camera/progression/checkpoint history; companion recovery costs no life.
@@ -81,6 +83,11 @@ Extra actors have stable native pool addresses and independent solid ownership.
 World routines run once; per-actor collision helpers retain native consequences.
 Special stages use original Sonic/Tails half-pipe artwork and native gameplay.
 Campaign CPU fallback is basic follow/jump, not full pathfinding.
+
+Shared-engine integration checks: all seven native targets build and their
+3,600-frame stock captures match pre-feature master. See
+`SONIC2_SHARED_ENGINE_VALIDATION.md` for coverage and the pre-existing Puyo
+build-file caveat. This is bounded regression evidence, not whole-game QA.
 
 ## M5 — human validation gate
 
