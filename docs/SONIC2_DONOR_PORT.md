@@ -29,6 +29,7 @@ All numbers below are donor addresses, not Sonic 2 host addresses.
 | Uncompressed character art | `$060000` | `$1200E0` |
 | Normal character palette | `$0029E2` | `$0A8AFC` |
 | Mapping/DPLC frame count | 253 | 251 |
+| Animation table / streams | `$01C96E` / 44 | `$017EF4` / 37 |
 
 S3&K evidence: pinned skdisasm `1e1b5aff82c21175c593e42c966a6ff8b1586ff3`,
 byte-matched listing. `Map_Knuckles`, `PLC_Knuckles`, `ArtUnc_Knux`,
@@ -46,13 +47,14 @@ pointer `$01FA` establishes 253 table entries. Knuckles has 251 source entries.
 `sonic2_donor_assets.c` normalizes only those gameplay frames to independent
 indexed surfaces. It validates table bounds, piece counts, tile references,
 palette use and image extents, builds transactionally and leaves an existing
-bank untouched on failure. It does not publish either character as playable.
+bank untouched on failure. It also validates bounded animation streams.
+Registration separately requires a verified bank and enabled mod.
 
-## Behavior port still required
+## Portable behavior port
 
 Amy modes at donor `$01AE68`: ground `$01B018`, air `$01B09A`, roll `$01B0DA`,
-jump `$01B104`. Analyze their called specials and timing before implementing
-the host controller; do not infer a full moveset from character appearance.
+jump `$01B104`. `sonic2_character.c` ports specials as independent actor state;
+the native host retains movement, terrain and combat consequences.
 Knuckles reference routines: `Knuckles_Glide`, `Knuckles_Gliding_HitWall`,
 `Knuckles_Fall_From_Glide`, `Knuckles_Sliding`, `Knuckles_Wall_Climb`,
 `Knuckles_ClimbUp`, `Knuckles_LetGoOfWall`, `Knuckles_Climb_Ledge`.
@@ -63,3 +65,46 @@ world consequences. No donor object model or global RAM copy belongs in that
 interface. The world must tick once, and each actor must have independent
 state. UI registration is gated by both verified assets and implemented
 gameplay capabilities.
+
+Amy evidence used by the port:
+
+- `$1B972`: Down+A hammer jump, additional `$250` impulse.
+- `$1B9B2`: A hammer swing, `$28->$23` animations, inertia decay by one eighth.
+- `$1BA9A`: Down+B/C giant jump, water/speed-shoe variants.
+- `$1BD8C/$1BE44`: Up+B/C charged dash, `$800..$C00` release-speed table.
+- `$1BFE2/$1C122`: downward whirl / airborne hammer.
+- `$1C0D2/$1B922`: giant-roll transition and landing/recovery animations.
+- `$41964`: grounded hammer's facing-dependent 34x50 attack rectangle.
+- `$41B78/$41C14`: hammer breaks monitors, including upward-moving strikes.
+- `$41C60`: attack predicate; ordinary unarmed Amy jumps do not attack.
+
+Knuckles uses the pinned source's lower jump, glide acceleration/turning,
+release/fall/slide, wall grab/climb/jump, and ledge offsets. The host supplies
+integer sine and signed floor/wall/ceiling distances. Native helpers perform
+actual world collisions; donor code never executes.
+
+## Host ownership and extension boundary
+
+`sonic2_runtime.c` separates character identity from player role. P3/P4 reserve
+stable native pool addresses, keeping monitor/platform parent links valid.
+Solid standing/pushing flags are stored independently per extra actor. Springs
+execute their world routine once and collision/launch helpers for each actor.
+P1 owns progression, camera and checkpoints; companions have independent input,
+physics and death/catch-up respawn. Campaign rings use a shared native pool.
+
+Native VS has only P1/P2. Native special stages also use P1/P2 and restore
+companions on return. Imported SS sprites are rotated/scaled gameplay art,
+**not** original half-pipe art. No donor title assets are decoded.
+
+The Options registry uses stable IDs (capacity 16), availability callbacks and
+uniqueness checks. New imports add a verified resource, portable controller and
+host registration; roster/input code is reusable. S3&K is a package with a
+Knuckles feature, leaving room for separately opt-in future features.
+
+This is a representative playable spike, not whole-campaign parity certification.
+Live tests cover real-terrain glide/grab/climb/wall-jump, Amy enemy/monitor/boss
+hits, springs, recovery, transitions and SS return. All-zone devices, all power-up
+visual combinations, water palettes and exhaustive donor timing need further
+validation. Machine quickstates reject experimental rosters because their
+format does not serialize host controller/solid state. That guard does not
+implement the separately gated campaign save/zone-selection feature.

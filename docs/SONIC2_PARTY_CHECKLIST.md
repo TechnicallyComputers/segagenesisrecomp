@@ -22,47 +22,61 @@ Engine and consumer branch: `experiment/sonic2-local-4p` in separate worktrees.
 - [x] Persistent roster; native title Options entry retained.
 - [x] Automated model tests and real navigation screenshots.
 
-This is the configuration layer only. Gameplay adapters below are not yet
-wired: a changed roster does **not yet change the spawned native actors**.
-Local validation: 16 CTests, strict-stack Options navigation, and a 3,600-frame
-stock run with no dispatch misses. Three PNGs and two full-RAM captures match
-primary master byte-for-byte. Historical frame-60 baseline is stale relative
-to both builds; the experiment matches a fresh primary CPU/WRAM snapshot.
+The roster creates the selected native/imported gameplay actors. Eighteen
+ROM-independent CTests and 19 serial live cases pass; every live case has
+strict native-stack checks and zero dispatch misses. Four-player runs advance
+251 world ticks over 251 output frames (including widescreen). Evidence is in
+ignored `build/party-acceptance-02/`. Human visual/audio/controller acceptance
+remains required; tests do not certify full-campaign parity.
+
+Final stock regression: 3,600 frames, zero dispatch misses; all three PNGs and
+both full-RAM captures match primary master's annotation smoke byte-for-byte.
+The diagnostic frame-60 boot snapshot matches the fresh primary reference at
+`build/primary-boot-probe/frame60.json`. The older checked-in boot baseline still
+differs from both builds and was not rewritten. Runner-purity audit reports the
+same 67 pre-existing comment/compatibility matches as primary master.
 
 ## M2 — resource-backed character mods
 
-- [ ] Amy enabled by default, never selected automatically; can be disabled.
-- [ ] Extract only gameplay art/logic from the supplied Rev 1.7.1 hack.
+- [x] Amy enabled by default, never selected automatically; can be disabled.
+- [x] Import gameplay art and port behavior from the supplied Rev 1.7.1 hack.
   - [x] SHA-256-verified gameplay art, mapping and palette decoder; all 253 Amy
     and 251 Knuckles frames decode, contact sheets visually inspected.
-  - [ ] Portable gameplay controllers and their host collision adapters.
-- [ ] S3&K default off; verified user-selected stock donor ROM required.
-- [ ] Knuckles gameplay implementation (including glide/climb), not a Sonic reskin.
-- [ ] Source/provenance and collision/animation adapters; no patched ROM or generated-C edits.
-- [ ] Mods UI explains missing/wrong resources and gates selection accordingly.
+  - [x] Portable controllers and native host collision adapters.
+- [x] S3&K default off; verified user-selected stock donor ROM required.
+- [x] Knuckles gameplay: live terrain glide/grab/climb/wall-jump test passes.
+- [x] Source/provenance and collision/animation adapters; no patched ROM or generated-C edits.
+- [x] Mods provider explains missing/wrong resources and gates selection accordingly.
 
 ## M3 — local party simulation
 
 - [x] Four independent logical inputs, bindings, hotplug and script timelines.
   - [x] Virtual SDL P3/P4 button isolation and disconnect tests; shared launcher
     bindings round-trip through the engine's actual settings.ini parser.
-- [ ] Native Genesis physical ports remain two; no netplay expansion.
-- [ ] Independent P3/P4 actor state; tick the world only once.
-- [ ] Companion CPU fallback when local controller unavailable.
-- [ ] P1 owns camera, lives, progression and checkpoints; catchup/respawn for companions.
-- [ ] Terrain, solid objects, enemies and representative boss interactions.
+- [x] Native Genesis physical ports remain two; no netplay expansion.
+- [x] Independent P3/P4 actor state; tick the world only once.
+- [x] Companion CPU fallback when local controller unavailable (basic follow/jump).
+- [x] P1 owns camera/progression/checkpoint history; companion recovery costs no life.
+- [x] Representative terrain/solid/spring/enemy/monitor/EHZ boss interaction fixtures.
 
 ## M4 — mode compatibility
 
-- [ ] VS remains native two-player; uses selected P1/P2 characters; rejects NONE.
-- [ ] Special stages use selected P1/P2; restore companions after the round trip.
-- [ ] Existing netplay rejects unsupported roster/mod combinations.
-- [ ] Restart, death, level transition and donor-disable recovery.
+- [x] VS remains native two-player; imports tested in either role; rejects NONE.
+- [x] Native special stages use selected P1/P2 and restore companions on return.
+- [x] Existing netplay guard rejects experimental rosters; no netplay expansion.
+- [x] Companion death/catchup, act reload and unavailable-donor roster repair.
+- [x] Reject machine quickstates that cannot serialize experimental host state.
+- [ ] Whole-campaign devices/power-up visuals/water palettes and exhaustive donor parity.
+
+Extra actors have stable native pool addresses and independent solid ownership.
+World routines run once; per-actor collision helpers retain native consequences.
+Imported special-stage art is a rotated/scaled gameplay projection, not original
+half-pipe artwork. CPU fallback is basic follow/jump, not full pathfinding.
 
 ## M5 — human validation gate
 
-- [ ] Runnable build and reproducible keyboard/controller instructions.
-- [ ] Automated evidence and honest known limitations, with representative playable coverage.
+- [x] Runnable Release build, private Amy assets, and consumer `EXPERIMENT.md` instructions.
+- [x] Automated evidence and documented limits, with representative playable coverage.
 - [ ] Owner explicitly validates and approves four-player work.
 
 ## BLOCKED UNTIL M5 APPROVAL — campaign saves / zone selection
