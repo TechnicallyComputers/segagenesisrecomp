@@ -92,9 +92,11 @@ execute their world routine once and collision/launch helpers for each actor.
 P1 owns progression, camera and checkpoints; companions have independent input,
 physics and death/catch-up respawn. Campaign rings use a shared native pool.
 
-Native VS has only P1/P2. Native special stages also use P1/P2 and restore
-companions on return. Imported SS sprites are rotated/scaled gameplay art,
-**not** original half-pipe art. No donor title assets are decoded.
+Native VS has only P1/P2 and respects their selected characters. Special stages
+always use stock Sonic and Tails, including solo/P2=NONE campaign rosters.
+Their native controllers, art, shadows and CPU follow remain unchanged; the
+chosen campaign characters and companions return afterward. No imported
+special-stage projection remains, and no donor title assets are decoded.
 
 The Options registry uses stable IDs (capacity 16), availability callbacks and
 uniqueness checks. New imports add a verified resource, portable controller and

@@ -23,10 +23,10 @@ Engine and consumer branch: `experiment/sonic2-local-4p` in separate worktrees.
 - [x] Automated model tests and real navigation screenshots.
 
 The roster creates the selected native/imported gameplay actors. Eighteen
-ROM-independent CTests and 21 serial live cases pass; every live case has
+ROM-independent CTests and 23 serial live cases pass; every live case has
 strict native-stack checks and zero dispatch misses. Four-player runs advance
 251 world ticks over 251 output frames (including widescreen). Evidence is in
-ignored `build/party-spawnfix-acceptance/`. Human visual/audio/controller acceptance
+ignored `build/party-native-special-acceptance/`. Human visual/audio/controller acceptance
 remains required; tests do not certify full-campaign parity.
 
 Final stock regression: 3,600 frames, zero dispatch misses; all three PNGs and
@@ -62,7 +62,10 @@ same 67 pre-existing comment/compatibility matches as primary master.
 ## M4 — mode compatibility
 
 - [x] VS remains native two-player; imports tested in either role; rejects NONE.
-- [x] Native special stages use selected P1/P2 and restore companions on return.
+- [x] Special stages always use native Sonic + Tails, regardless of campaign
+  roster or player count (including P2=NONE). Restore chosen characters on return.
+- [x] Imported/swapped/solo special-stage captures match the stock roster before
+  and after P2 input; remove imported special-stage art and controller adapters.
 - [x] Existing netplay guard rejects experimental rosters; no netplay expansion.
 - [x] Companion death/catchup, act reload and unavailable-donor roster repair.
 - [x] Owner-reported floating companions after checkpoint special-stage return:
@@ -76,8 +79,8 @@ same 67 pre-existing comment/compatibility matches as primary master.
 
 Extra actors have stable native pool addresses and independent solid ownership.
 World routines run once; per-actor collision helpers retain native consequences.
-Imported special-stage art is a rotated/scaled gameplay projection, not original
-half-pipe artwork. CPU fallback is basic follow/jump, not full pathfinding.
+Special stages use original Sonic/Tails half-pipe artwork and native gameplay.
+Campaign CPU fallback is basic follow/jump, not full pathfinding.
 
 ## M5 — human validation gate
 
