@@ -119,10 +119,12 @@ host-owned buffers. Private ROM/art bytes never enter commits or packages.
    completed-file zone selection, continued Emerald persistence, No Save,
    Delete confirmation/cancel, write-failure notice/retry. Machine states and
    netplay reject the enabled campaign feature.
-5. **S4 automated checks passed:** 19 CTests, 24 campaign fixtures, 23 prior
-   party cases, boot reference and mod-off screenshot/RAM parity. Remaining:
-  owner runtime/controller/audio playtest, corrections and dependency-first
-  integration. Layout approval does not certify runtime QA.
+5. **S4 checks and owner acceptance:** 19 CTests, 24 campaign fixtures, 23 prior
+   party cases, boot reference and mod-off screenshot/RAM parity passed. After
+   testing Act 1 saving and reviewing the visual corrections, the owner said
+   "I think we're good" and requested the opt-in mod be integrated. This is
+   milestone acceptance, not a claim of exhaustive whole-game/controller QA.
+   Dependency-first publication and consumer integration follow that acceptance.
 
 ### Owner playtest corrections (2026-09-19)
 
@@ -155,8 +157,8 @@ empty dispatch-miss lists. Actual updated menu captures are in
 `campaign-polish-01/delete-directions`; `robotnik-delete-preview.gif` shows the
 sign/body cycle. The original donor comparison used the existing S3&K runner
 in `donor-reference-01`, privately and serially. Owner saves/settings were
-preserved and the campaign file still validates. Updated visual approval and
-dependency-first integration remain.
+preserved and the campaign file still validates. The owner subsequently
+accepted the result and requested integration as an opt-in mod.
 
 ### Independent check of the striped shadows
 
@@ -211,16 +213,20 @@ or power-loss behavior. Sky Chase's fixture needed native camera bounds and
 event phase set with the player position; otherwise native bounds correctly
 moved Sonic away from the exit. No gameplay workaround was added for this.
 
-Implementation is local to the feature worktrees. Beads remains in progress;
-its Dolt push still fails on the previously documented missing remote data ref.
-Next unmet criterion: owner runtime/controller playtest, then corrections and
-integration. Preserve previous worktrees and test evidence.
+Owner accepted the implementation on 2026-09-19 and asked for the default-off
+mod to be integrated. Publish the engine before committing the consumer pin;
+then validate the consumer using that published dependency. Beads records the
+landed hashes; its separate Dolt sync has the known missing remote data ref.
+Preserve previous worktrees and test evidence. Never reset either feature
+worktree to phase 1 or recreate the implementation from the older handoff.
 
-The engine can be checkpointed locally without changing master. The consumer's
-CMake/source-list changes remain local until the engine dependency is published;
-do not commit a consumer pin to an unavailable engine object. Continue using
-the explicit engine override above. Never reset either feature worktree to the
-phase-1 baseline or recreate the implementation from the older handoff.
+The storage audit confirms there is no ROM write or emulated SRAM mapping in
+this feature. Only the external 128-byte campaign record and its backup/temp
+files are written. File contents carry stage/state/Emerald values, not memory
+addresses, pointers or execution state; transactional decode validates them
+before the menu loads a legal destination into fixed Sonic 2 RAM fields.
+Both the Sonic 2 and combined donor ROM SHA-256 values still match the original
+identities after all playtests. ROM donors are opened with read-only `rb` mode.
 
 ## Playtest and storage
 
