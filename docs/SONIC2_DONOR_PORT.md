@@ -1,0 +1,65 @@
+# Character donor evidence and host boundary
+
+The stock Sonic 2 image remains the sole guest ROM. Donors supply gameplay
+sprite art, mappings, palettes and behavior references. Their titles, zones,
+save rules, global patches and executable entry points must not run in the host.
+
+## Verified revisions
+
+| Donor | Size | SHA-256 |
+|---|---:|---|
+| Supplied Amy in Sonic 2 Rev 1.7.1 | 2,097,152 | `9c028944730128f6b9999fc74babf69694b0edab50e3f42cc6b60a185d0b1457` |
+| Stock S3&K combined | 4,194,304 | `fba0677fde9f76df93f3e98d6310d8af68b9847bde16e253d73cd4dd8134ed23` |
+
+Amy ZIP contains one `.bin`, no source. Public source search did not establish
+an exact Rev 1.7.1 tree. Do not substitute the different Superstars Amy or
+Anniversary Edition controller. Existing donor bytes are available for an
+evidence-led behavior port. Credit E-122-Psi and original contributors; source
+availability and redistribution rights are separate questions. Keep extracted
+owner assets private, outside commits/packages.
+
+## Asset addresses
+
+All numbers below are donor addresses, not Sonic 2 host addresses.
+
+| Data | Amy Rev 1.7.1 | S3&K Knuckles |
+|---|---:|---:|
+| Normal gameplay mappings | `$08B8C0` (8-byte pieces) | `$14A8D6` (6-byte pieces) |
+| Dynamic pattern load cues | `$08D6CE` | `$14BD0A` |
+| Uncompressed character art | `$060000` | `$1200E0` |
+| Normal character palette | `$0029E2` | `$0A8AFC` |
+| Mapping/DPLC frame count | 253 | 251 |
+
+S3&K evidence: pinned skdisasm `1e1b5aff82c21175c593e42c966a6ff8b1586ff3`,
+byte-matched listing. `Map_Knuckles`, `PLC_Knuckles`, `ArtUnc_Knux`,
+`Pal_Knuckles`, and `Knuckles_Load_PLC2` establish the table format and art base.
+
+Amy evidence: its sole `movea.l (pc,d0.w),a1; jsr (a1)` object-dispatch site is
+`$01631A`, pointing at `Obj_Index=$016352`. First entry `$01ACEC` is the player
+object. Its state table `$01AD06` identifies initialization `$01AD12` and
+control `$01ADCC`. Initialization loads mappings `$08B8C0`. The control tail
+calls DPLC loader `$01CC3E`, which loads cues `$08D6CE`, adds art base `$060000`,
+and queues to VRAM `$F000`. Palette pointer at `$00279A` targets `$0029E2`.
+The first mapping frame is deliberately empty (offset zero); the following
+pointer `$01FA` establishes 253 table entries. Knuckles has 251 source entries.
+
+`sonic2_donor_assets.c` normalizes only those gameplay frames to independent
+indexed surfaces. It validates table bounds, piece counts, tile references,
+palette use and image extents, builds transactionally and leaves an existing
+bank untouched on failure. It does not publish either character as playable.
+
+## Behavior port still required
+
+Amy modes at donor `$01AE68`: ground `$01B018`, air `$01B09A`, roll `$01B0DA`,
+jump `$01B104`. Analyze their called specials and timing before implementing
+the host controller; do not infer a full moveset from character appearance.
+Knuckles reference routines: `Knuckles_Glide`, `Knuckles_Gliding_HitWall`,
+`Knuckles_Fall_From_Glide`, `Knuckles_Sliding`, `Knuckles_Wall_Climb`,
+`Knuckles_ClimbUp`, `Knuckles_LetGoOfWall`, `Knuckles_Climb_Ledge`.
+
+Following the Captain Falcon/SMW example, behavior belongs in a portable
+character controller; a Sonic 2 adapter owns terrain/solids/combat and native
+world consequences. No donor object model or global RAM copy belongs in that
+interface. The world must tick once, and each actor must have independent
+state. UI registration is gated by both verified assets and implemented
+gameplay capabilities.
