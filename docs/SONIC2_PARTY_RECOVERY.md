@@ -33,6 +33,17 @@ Bounded validation (2026-09-19):
 - Both game runs ended normally with no dispatch misses. Returned/jumping
   screenshots inspected. Local evidence: consumer `build-party-recovery/qa`.
 
+Owner subsequently confirmed that the rendering is correct. To avoid identical
+companions piling up, CPU-controlled P3/P4 now have small deterministic variations
+only during normal following: seven/thirteen extra history frames, different jump
+retry phases, grounded trailing targets of 28-35 / 72-79 pixels, and brief coasting
+on one/two of each 32 frames. The target variation changes on a fixed frame schedule
+without consuming game RNG. The native history and clock are restored immediately
+after the AI call. P2, connected controllers, and waiting/flying recovery retain
+their existing behavior; coasting never removes braking or airborne steering.
+A short EHZ run/jump/stop check showed distinct positions and jump phases, including
+resting x positions 96/97/52/18, with no dispatch misses.
+
 This is native P2 AI, not obstacle pathfinding: a follower can still encounter
-springs or remain on a different ledge. Owner confirmation of the interactive
-build is pending; no whole-campaign claim is made.
+springs or remain on a different ledge. Owner confirmation of the new P3/P4 variation is pending; no whole-campaign
+claim is made.
