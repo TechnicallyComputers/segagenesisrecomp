@@ -110,3 +110,23 @@ visual combinations, water palettes and exhaustive donor timing need further
 validation. Machine quickstates reject experimental rosters because their
 format does not serialize host controller/solid state. That guard does not
 implement the separately gated campaign save/zone-selection feature.
+
+## Knuckles loop animation correction (beads-5dyp.6)
+
+The donor's `Animate_Knuckles` ($17D30), specifically $17E42-$17E82, uses
+sector offsets of four frames for walking and two for running. The shared
+Sonic-style selector used eight/four instead, selecting unrelated Knuckles
+poses on steep slopes and loops (e.g. left-facing angle $60: walking $37
+instead of $1F, running $39 instead of $2D). The donor also writes the surface
+pose every tick, before checking the gait timer. Reusing a cached frame while
+changing its flip flags could mismatch the pose and surface orientation.
+
+Knuckles now uses the donor's stride and timing order. Rolling and the other
+character controllers retain their existing behavior. The focused character
+check failed on the old selector and passes for both facings, walking/running,
+all loop sectors, and angle/speed changes during a held gait timer. Gameplay
+was reproduced from the owner's EHZ1 position (6535, 711), using the spring at
+(6472, 720); wall and ceiling captures show the corrected, nonrolling poses.
+No dispatch misses occurred. Local captures live in the consumer's
+`build-party-recovery/qa/knuckles-loop` directory; owner visual confirmation
+of the relaunched build is pending.
