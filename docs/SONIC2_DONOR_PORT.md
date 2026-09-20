@@ -128,5 +128,6 @@ all loop sectors, and angle/speed changes during a held gait timer. Gameplay
 was reproduced from the owner's EHZ1 position (6535, 711), using the spring at
 (6472, 720); wall and ceiling captures show the corrected, nonrolling poses.
 No dispatch misses occurred. Local captures live in the consumer's
-`build-party-recovery/qa/knuckles-loop` directory; owner visual confirmation
-of the relaunched build is pending.
+`build-party-recovery/qa/knuckles-loop` directory. The owner accepted the
+relaunched build and requested a release. The fix landed on engine master
+at `837f93a` and consumer master at `f5dd907`.
