@@ -45,5 +45,6 @@ A short EHZ run/jump/stop check showed distinct positions and jump phases, inclu
 resting x positions 96/97/52/18, with no dispatch misses.
 
 This is native P2 AI, not obstacle pathfinding: a follower can still encounter
-springs or remain on a different ledge. Owner confirmation of the new P3/P4 variation is pending; no whole-campaign
-claim is made.
+springs or remain on a different ledge. The owner tested and accepted the P3/P4
+variation and requested integration to master. Rendering and follower behavior
+are accepted; no whole-campaign claim is made.
