@@ -57,7 +57,7 @@ same 67 pre-existing comment/compatibility matches as primary master.
 - [x] Other games retain two opened controllers by default; four-device discovery
   requires the game's explicit capability. Default/zero/four-device tests pass.
 - [x] Independent P3/P4 actor state; tick the world only once.
-- [x] Companion CPU fallback when local controller unavailable (basic follow/jump).
+- [x] Companion CPU fallback when local controller unavailable (native P2 AI).
 - [x] P1 owns camera/progression/checkpoint history; companion recovery costs no life.
 - [x] Representative terrain/solid/spring/enemy/monitor/EHZ boss interaction fixtures.
 
@@ -74,15 +74,16 @@ same 67 pre-existing comment/compatibility matches as primary master.
   native character init now inherits P1's collision plane and priority before
   movement. Real starpost/SS-return fixtures cover both roster arrangements,
   the reported ghost-floor location, and primary/secondary-plane recovery.
-- [x] Ordinary spawn/SS-return no longer starts hurt blinking; protected recovery
-  and actual hurt reuse the native sprite-submission decision and blink cadence.
+- [x] Ordinary spawn/SS-return and companion recovery do not add hurt blinking;
+  actual hurt reuses the native sprite-submission decision and blink cadence.
 - [x] Reject machine quickstates that cannot serialize experimental host state.
 - [ ] Whole-campaign devices/power-up visuals/water palettes and exhaustive donor parity.
 
 Extra actors have stable native pool addresses and independent solid ownership.
 World routines run once; per-actor collision helpers retain native consequences.
 Special stages use original Sonic/Tails half-pipe artwork and native gameplay.
-Campaign CPU fallback is basic follow/jump, not full pathfinding.
+Campaign CPU fallback uses native P2 AI, not full pathfinding. See
+`SONIC2_PARTY_RECOVERY.md` for recovery and sprite publication fixes.
 
 Shared-engine integration checks: all seven native targets build and their
 3,600-frame stock captures match pre-feature master. See
