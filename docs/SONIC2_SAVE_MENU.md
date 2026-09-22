@@ -1,5 +1,11 @@
 # Sonic 2 campaign saves: phase 2
 
+Current follow-up: [Sonic 2 quickstates and stage thumbnails](SONIC2_QUICKSTATES.md)
+supersedes this historical implementation record's machine-state exclusion
+and text-only card design. The 2026-09-22 numbered/static card layout and
+version-2 lives/continues persistence also supersede the original defaults-only
+policy below. No trilogy campaign work is included.
+
 Tracking: central Beads `beads-5dyp.3`. Work solo. Owner chose implementation
 on 2026-09-19; the older phase-1 approval scheduling text is superseded. This
 does not certify whole-campaign four-player QA. Megamix remains cancelled.
