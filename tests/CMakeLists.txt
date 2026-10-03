@@ -211,3 +211,29 @@ genesisrecomp_register_test(m68k_effective_address_test)
 target_include_directories(m68k_effective_address_test PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/../runner/include"
 )
+
+# ---------------------------------------------------------------------------
+# genesis_netplay_ice_test — two-process loopback of runner/netplay/genesis_netplay.c
+# over ICE-hub adoption (host relay over ICE). Opt-in with
+# -DGENESISRECOMP_NETPLAY=ON (needs the recomp-net submodule and libjuice).
+# ---------------------------------------------------------------------------
+if(GENESISRECOMP_NETPLAY AND UNIX)
+    set(_gnet_rnet "${CMAKE_CURRENT_LIST_DIR}/../external/recomp-net")
+    if(NOT TARGET recomp_net AND EXISTS "${_gnet_rnet}/CMakeLists.txt")
+        set(RNET_ENABLE_ICE ON CACHE BOOL "" FORCE)
+        set(RNET_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(RNET_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        add_subdirectory("${_gnet_rnet}" "${CMAKE_BINARY_DIR}/recomp-net" EXCLUDE_FROM_ALL)
+    endif()
+    if(TARGET recomp_net AND RNET_ENABLE_ICE)
+        add_executable(genesis_netplay_ice_test netplay/genesis_netplay_ice_test.c
+            "${CMAKE_CURRENT_LIST_DIR}/../runner/netplay/genesis_netplay.c")
+        target_include_directories(genesis_netplay_ice_test PRIVATE
+            "${CMAKE_CURRENT_LIST_DIR}/../runner/netplay"
+            "${_gnet_rnet}/src")
+        target_link_libraries(genesis_netplay_ice_test PRIVATE recomp_net)
+        target_compile_definitions(genesis_netplay_ice_test PRIVATE GENESIS_HAS_LOBBY_CLIENT=1)
+        add_test(NAME genesis_netplay_ice COMMAND genesis_netplay_ice_test)
+        set_tests_properties(genesis_netplay_ice PROPERTIES TIMEOUT 150)
+    endif()
+endif()

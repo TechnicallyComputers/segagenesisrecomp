@@ -64,14 +64,11 @@ function(genesisrecomp_enable_netplay target)
 
     target_sources(${target} PRIVATE
         "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/netplay/genesis_netplay.c"
-        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/netplay/genesis_launcher_netplay.c"
-        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/lobby/genesis_lobby_client.c"
-        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/lobby/ws/rnet_ws.c"
-        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/lobby/ws/rnet_sha1.c")
+        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/netplay/genesis_launcher_netplay.c")
+    # The lobby client, WebSocket framing and SHA-1 come from recomp_net itself
+    # (rnet_lobby_*). The forked runner/lobby/ copy was retired.
     target_include_directories(${target} PRIVATE
-        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/netplay"
-        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/lobby"
-        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/lobby/ws")
+        "${GENESISRECOMP_NET_ENGINE_ROOT}/runner/netplay")
     target_link_libraries(${target} PRIVATE recomp_net)
     target_compile_definitions(${target} PRIVATE
         GENESIS_HAS_RECOMP_NET=1

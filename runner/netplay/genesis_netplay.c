@@ -5,9 +5,10 @@
 #include <string.h>
 
 #include "recomp_net/recomp_net.h"
+#include "recomp_net/host_ice.h"
 
 #if defined(GENESIS_HAS_LOBBY_CLIENT)
-#include "genesis_lobby_client.h"
+#include "recomp_net/lobby_client.h"
 #endif
 
 typedef struct GenesisNetplayState {
@@ -25,6 +26,13 @@ typedef struct GenesisNetplayState {
 } GenesisNetplayState;
 
 static GenesisNetplayState g_np;
+
+/* One connected ICE agent handed over by the lobby (hub guest, or the host's
+ * only guest). Genesis has two pad ports, so a hub never has more than one. */
+static struct {
+    RNetIceAgent *agent;
+    char error[96];
+} g_ice;
 
 static unsigned env_u(const char *name, unsigned fallback)
 {
@@ -74,6 +82,7 @@ void genesis_netplay_apply_env(GenesisNetplayConfig *cfg)
     if (value) {
         if (!strcmp(value, "ice")) cfg->transport = 1;
         else if (!strcmp(value, "lan")) cfg->transport = 2;
+        else if (!strcmp(value, "ice-hub")) cfg->ice_hub = 1;
     }
 }
 
@@ -115,7 +124,7 @@ static void host_on_signal(const RNetSignal *message, void *ctx)
 {
     (void)ctx;
     if (message)
-        (void)genesis_lobby_send_signal((int)message->type,
+        (void)rnet_lobby_send_signal((int)message->type,
                                         (int)message->flag, message->text);
 }
 
@@ -124,7 +133,7 @@ static void drain_lobby_signals(void)
     int type = 0, flag = 0;
     char text[2048];
     while (g_np.session &&
-           genesis_lobby_poll_signal(&type, &flag, text, sizeof(text))) {
+           rnet_lobby_poll_signal(&type, &flag, text, sizeof(text))) {
         RNetSignal signal;
         memset(&signal, 0, sizeof(signal));
         if (type == (int)RNET_SIGNAL_LOCAL_SDP)
@@ -163,7 +172,7 @@ static int resolve_use_ice(const GenesisNetplayConfig *cfg)
 {
     if (cfg->transport == 2) return 0;
 #if defined(RNET_ENABLE_ICE) && defined(GENESIS_HAS_LOBBY_CLIENT)
-    if (!genesis_lobby_connected() || !genesis_lobby_in_lobby()) return 0;
+    if (!rnet_lobby_connected() || !rnet_lobby_in_lobby()) return 0;
     if (cfg->transport == 1) return 1;
     return !hostport_is_private(cfg->peer_hostport);
 #else
@@ -184,16 +193,95 @@ uint32_t genesis_netplay_sim_tick(void)
     return genesis_netplay_active() ? rnet_session_sim_tick(g_np.session) : 0;
 }
 
+static void ice_set_error(const char *msg)
+{
+    snprintf(g_ice.error, sizeof(g_ice.error), "%s", msg ? msg : "");
+}
+
+const char *genesis_netplay_ice_error(void) { return g_ice.error; }
+
+static void ice_stash_release(void)
+{
+#if defined(RNET_ENABLE_ICE)
+    if (g_ice.agent) rnet_host_ice_destroy_agent(g_ice.agent);
+#endif
+    g_ice.agent = NULL;
+}
+
+int genesis_netplay_stash_ice_agent(struct RNetIceAgent *agent)
+{
+#if defined(RNET_ENABLE_ICE)
+    if (!agent) return -1;
+    ice_stash_release();
+    g_ice.agent = agent;
+    ice_set_error("");
+    return 0;
+#else
+    (void)agent;
+    return -1;
+#endif
+}
+
+int genesis_netplay_capture_ice_launch(void)
+{
+#if defined(GENESIS_HAS_LOBBY_CLIENT) && defined(RNET_ENABLE_ICE)
+    RNetLobbyJoinInfo join;
+    if (!rnet_lobby_try_fill_launch(&join) || !join.transport_ice_hub) return 0;
+    if (g_ice.agent) return 1; /* already taken for this launch */
+    if (rnet_lobby_is_host()) {
+        RNetLobbyIceSeat seat[RNET_HOST_ICE_MAX_PEERS];
+        int n = rnet_lobby_ice_take_hub(seat, RNET_HOST_ICE_MAX_PEERS);
+        int i;
+        if (n < 1) {
+            ice_set_error(rnet_lobby_ice_launch_error());
+            return -1;
+        }
+        if (n != GENESIS_NETPLAY_MAX_SEATS - 1) {
+            /* Never a smaller or larger room than the lobby promised: the
+             * machine has two ports, so a hub carries exactly one guest. */
+            for (i = 0; i < n; ++i) rnet_host_ice_destroy_agent(seat[i].agent);
+            ice_set_error("genesis supports 2 players: hub launch carried "
+                          "more than one guest");
+            return -1;
+        }
+        g_ice.agent = seat[0].agent;
+    } else {
+        g_ice.agent = rnet_lobby_ice_take_guest_agent();
+        if (!g_ice.agent) {
+            ice_set_error(rnet_lobby_ice_launch_error()[0]
+                              ? rnet_lobby_ice_launch_error()
+                              : "no ICE link to the host");
+            return -1;
+        }
+    }
+    ice_set_error("");
+    return 1;
+#else
+    return 0;
+#endif
+}
+
 int genesis_netplay_start(const GenesisNetplayConfig *cfg)
 {
     RNetConfig net_cfg;
     RNetHostVTable host;
     int use_ice;
     if (!cfg || !cfg->enabled) return -1;
-    genesis_netplay_shutdown();
+    if (cfg->local_slot < 0 || cfg->local_slot >= GENESIS_NETPLAY_MAX_SEATS) {
+        fprintf(stderr, "genesis_netplay: local_slot %d outside the %d-seat "
+                        "cap (two controller ports)\n",
+                cfg->local_slot, GENESIS_NETPLAY_MAX_SEATS);
+        return -5;
+    }
+    {   /* shutdown must not drop an agent stashed for THIS start */
+        RNetIceAgent *keep = g_ice.agent;
+        g_ice.agent = NULL;
+        genesis_netplay_shutdown();
+        g_ice.agent = keep;
+    }
     rnet_config_init_defaults(&net_cfg);
-    net_cfg.slot_count = 2;
-    net_cfg.local_slot = (rnet_u8)(cfg->local_slot == 1 ? 1 : 0);
+    net_cfg.slot_count = GENESIS_NETPLAY_MAX_SEATS;
+    net_cfg.local_slot = (rnet_u8)cfg->local_slot;
     net_cfg.input_delay = (rnet_u8)(cfg->input_delay < 0 ? 0 :
                                     cfg->input_delay > 16 ? 16 : cfg->input_delay);
     net_cfg.session_id = cfg->session_id ? cfg->session_id : 1;
@@ -201,13 +289,46 @@ int genesis_netplay_start(const GenesisNetplayConfig *cfg)
     host.sample_local = host_sample_local;
     host.publish = host_publish;
     host.ctx = &g_np;
-    use_ice = resolve_use_ice(cfg);
+    use_ice = cfg->ice_hub ? 0 : resolve_use_ice(cfg);
 #if defined(GENESIS_HAS_LOBBY_CLIENT) && defined(RNET_ENABLE_ICE)
     if (use_ice) host.on_signal = host_on_signal;
 #endif
     g_np.session = rnet_session_create(&net_cfg, &host);
     if (!g_np.session) return -2;
-    if (use_ice) {
+    if (cfg->ice_hub) {
+#if defined(RNET_ENABLE_ICE)
+        /* Host relay over ICE: the session takes the agents the waiting room
+         * connected; nothing is bound, dialled or renegotiated. */
+        int rc;
+        if (!g_ice.agent) {
+            ice_set_error("no ICE agent handed over for an ice-hub start");
+            rnet_session_destroy(g_np.session);
+            g_np.session = NULL;
+            return -4;
+        }
+        if (net_cfg.local_slot == 0) {
+            RNetIceAdoptSeat seat;
+            seat.slot = 1;
+            seat.agent = g_ice.agent;
+            rc = rnet_session_start_ice_hub_adopt(g_np.session, &seat, 1);
+        } else {
+            rc = rnet_session_adopt_ice_agent(g_np.session, g_ice.agent);
+        }
+        if (rc != 0) {
+            ice_set_error("session refused the ICE agent");
+            ice_stash_release();   /* caller still owned it on -1 */
+            rnet_session_destroy(g_np.session);
+            g_np.session = NULL;
+            return -4;
+        }
+        g_ice.agent = NULL;       /* the session owns it now */
+#else
+        ice_set_error("this build has no ICE support");
+        rnet_session_destroy(g_np.session);
+        g_np.session = NULL;
+        return -4;
+#endif
+    } else if (use_ice) {
 #if defined(RNET_ENABLE_ICE)
         RNetIceConfig ice;
         rnet_ice_config_init_defaults(&ice);
@@ -230,7 +351,7 @@ int genesis_netplay_start(const GenesisNetplayConfig *cfg)
     g_np.use_ice = use_ice;
     fprintf(stderr, "genesis_netplay: started transport=%s slot=%d input=%d "
                     "session=%u delay=%u bind=%s peer=%s\n",
-            use_ice ? "ice" : "lan", g_np.local_slot, g_np.input_player,
+            cfg->ice_hub ? "ice-hub" : use_ice ? "ice" : "lan", g_np.local_slot, g_np.input_player,
             (unsigned)net_cfg.session_id, (unsigned)net_cfg.input_delay,
             cfg->bind_hostport, cfg->peer_hostport);
     return 0;
@@ -243,6 +364,7 @@ void genesis_netplay_shutdown(void)
         rnet_session_destroy(g_np.session);
     }
     memset(&g_np, 0, sizeof(g_np));
+    ice_stash_release();
 }
 
 int genesis_netplay_needs_local_sample(void)
@@ -271,7 +393,7 @@ int genesis_netplay_poll_admit(void)
     uint32_t tick;
     if (!genesis_netplay_active()) return 1;
 #if defined(GENESIS_HAS_LOBBY_CLIENT)
-    if (g_np.use_ice || genesis_lobby_connected()) genesis_lobby_pump();
+    if (g_np.use_ice || rnet_lobby_connected()) rnet_lobby_pump();
 #endif
     drain_lobby_signals();
     rnet_session_pump(g_np.session);
